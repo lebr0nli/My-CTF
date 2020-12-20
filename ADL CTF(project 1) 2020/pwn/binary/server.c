@@ -8,9 +8,9 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #define ERRNOSTR    strerror(errno)
-#define 77     77
-#define 51      51
-#define 20    20
+#define MAXNAME     77
+#define MAXURL      51
+#define MAXPLATF    20
 #define MAXRANKNUM  5
 
 /*
@@ -18,13 +18,13 @@
  */
 
 struct Rank {
-    char platform[20];
+    char platform[MAXPLATF];
     int num;
 };
 
 struct Podcast {
-    char name[77];
-    char url[51];
+    char name[MAXNAME];
+    char url[MAXURL];
     struct Rank* ranks[MAXRANKNUM + 1];  // NULL terminated
 };
 
@@ -76,8 +76,8 @@ struct Podcast* find_with_url(const char* url) {
 
 void handle_client() {
     struct Podcast* pcast;
-    char url[51];
-    char name[77];
+    char url[MAXURL];
+    char name[MAXNAME];
     int i;
 
     while (getline(&line, &maxlen, stdin) > 1) {
@@ -88,7 +88,7 @@ void handle_client() {
             }
         } else if (strncmp(line, "info", 4) == 0) {
             // info [name]
-            strcpy_safe(name, line + 4, 77);
+            strcpy_safe(name, line + 4, MAXNAME);
             pcast = find_with_name(strip(name));
             if (pcast == NULL) {
                 fprintf(stderr, name);
@@ -101,14 +101,14 @@ void handle_client() {
             }
         } else if (strncmp(line, "link", 4) == 0) {
             // link [name]
-            strcpy_safe(name, line + 4, 77);
+            strcpy_safe(name, line + 4, MAXNAME);
             pcast = find_with_name(strip(name));
             if (pcast != NULL) {
                 puts(pcast->url);
             }
         } else if (strncmp(line, "nameof", 6) == 0) {
             // nameof [url]
-            strcpy_safe(url, line + 6, 77);
+            strcpy_safe(url, line + 6, MAXNAME);
             pcast = find_with_url(strip(url));
             if (pcast != NULL) {
                 puts(pcast->name);
@@ -140,14 +140,14 @@ void load_database() {
 
     for (i = 0; i < num_line; i++) {
         pcast = podcasts[i] = malloc(sizeof(struct Podcast));
-        freadline_to(file, pcast->name, 77);
-        freadline_to(file, pcast->url, 51);
+        freadline_to(file, pcast->name, MAXNAME);
+        freadline_to(file, pcast->url, MAXURL);
         j = 0;
         while (fscanf(file, "- %d ", &value) > 0) {  // read all ranks
             if (j < MAXRANKNUM) {
                 pcast->ranks[j] = malloc(sizeof(struct Rank));
                 pcast->ranks[j]->num = value;
-                freadline_to(file, pcast->ranks[j]->platform, 20);
+                freadline_to(file, pcast->ranks[j]->platform, MAXPLATF);
                 j++;
             } else {
                 getline(&line, &maxlen, file);
